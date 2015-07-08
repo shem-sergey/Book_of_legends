@@ -5,8 +5,13 @@
 #include <cstdlib>
 #include <vector>
 #include <queue>
+#include <algorithm>
 
 using namespace std;
+
+//Constants
+
+const int INITIATIVE_CONSTANT = 10;
 
 //Firstly basic classes for storing data:
 
@@ -94,27 +99,31 @@ public:
 	string name;
 	string background;
 
+	// Public stats of the unit:
+
+	short max_HP;//									Maximal hit points
+	short max_MP;//									Maximal mana points
+	short max_AP;//									Maximal action points
+	char initiative; //								Initiative of a unit
+	int value; //									It's for the game balance, I'm serious!
+
+	bool is_dead();
+	void modify_current_initiative(int); //			Adds x to current initiative of unit
+	int get_current_initiative();
+
 private:
 	//Stats of a unit:
 
 	short HP; //									Current hit points
-	short max_HP;//									Maximal hit points
-
 	short MP;//										Current mana points
-	short max_MP;//									Maximal mana points
-		
 	short AP;//										Current action points
-	short max_AP;//									Maximal action points
 
-	char initiative; //								Initiative of a unit
 	char current_initiative; //						Current initiative in battle for queueing
 	char hit_chance; //								Chance of a unit to hit, 0<hit_chance<100
 	char dodge_chance; //							Chance of a unit to dodge, 0<dodge_chance<100
 	double covered; //								AP modifier to attack this unit
 		
 	bool dead; //									Shows whether unit is dead in particular combat
-
-	int value; //									It's for the game balance, I'm serious!
 
 	//Use of other classes:
 
@@ -137,14 +146,14 @@ class Ability_Active: public Ability
 {
 public:
 private:
-	short manacost; //							Amount of mana needed to use ability
-	short actioncost; //						Amount of action points needed to use ability
+	short manacost; //								Amount of mana needed to use ability
+	short actioncost; //							Amount of action points needed to use ability
 };
 
 class Ability_Active_On_Target: public Ability_Active
 {
 public:
-	void apply_ability(Unit*){}; //				Method used to apply the ability
+	void apply_ability(Unit*){}; //					Method used to apply the ability
 private:
 };
 
@@ -161,31 +170,30 @@ class Hero: public Unit
 public:
 private:
 	// Specific PC attributes
-	char alignment; //							Reflects alignment of a character
-	char level; //								Level of a character
-	int experience; //							Amount of XP gained
-	char influence; //							Reflects the influence of the character on others
+	char alignment; //								Reflects alignment of a character
+	char level; //									Level of a character
+	int experience; //								Amount of XP gained
+	char influence; //								Reflects the influence of the character on others
 
-	vector <Item> loot; //						Stores hordes of loot
+	vector <Item> loot; //							Stores hordes of loot
 };
 
 class Party
 {
 public:
-private:
-	double alignment; //						Average alignment of a party
-	int gold; //								Treasures of a party
+	vector <Hero> creatures;//						List of heroes in the party
+private:	
+	double alignment; //							Average alignment of a party
+	int gold; //									Treasures of a party
 
-	int value; //								It's for the game balance, I'm serious!
-
-	vector <Hero> creatures;//					List of heroes in the party
+	int value; //									It's for the game balance, I'm serious!
 };
 
 class Opponents
 {
 public:
-private:
 	vector <Unit> creatures;//						List of enemies in the group
+private:
 
 	int gold; //									Amount of gold reward
 	int experience; //								Amount of experience reward
