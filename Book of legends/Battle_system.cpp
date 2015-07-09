@@ -16,7 +16,22 @@ void Unit::modify_current_initiative(int x)
 	current_initiative += x;
 }
 
+void Unit::show()
+{
+	cout << name << endl << background << endl;
+}
+
 //Class Unit methods end here.
+
+//Class Hero methods begin here:
+
+void Hero::show()
+{
+	cout << "Hero ";
+	(*this).Unit::show();
+}
+
+//Class Hero methods end here.
 
 //Class Battle methods begin here:
 

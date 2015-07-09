@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <cstdlib>
+#include <string>
 #include <vector>
 #include <queue>
 #include <algorithm>
@@ -110,6 +111,7 @@ public:
 	bool is_dead();
 	void modify_current_initiative(int); //			Adds x to current initiative of unit
 	int get_current_initiative();
+	void show();
 
 private:
 	//Stats of a unit:
@@ -168,6 +170,7 @@ private:
 class Hero: public Unit
 {
 public:
+	void show();
 private:
 	// Specific PC attributes
 	char alignment; //								Reflects alignment of a character
