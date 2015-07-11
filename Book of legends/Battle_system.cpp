@@ -2,14 +2,66 @@
 
 //Class Unit methods begin here:
 
-bool Unit::is_dead()
+bool Unit::is_dead(){ return dead; }
+int Unit::get_current_initiative() {  return current_initiative;  }
+int Unit::get_HP() { return HP; }
+int Unit::get_MP() { return MP; }
+int Unit::get_AP() { return AP; }
+
+int Unit::modify_HP(bool operation, double value)
 {
-	return dead;
+	if(operation)
+		HP += value;
+	else
+		HP *= value;
+	if(HP > max_HP)
+	{
+		int result = HP - max_HP;
+		HP = max_HP;
+		return result;
+	}
+	return 0;
 }
 
-int Unit::get_current_initiative() {
-	return current_initiative;
+int Unit::modify_MP(bool operation, double value)
+{
+	if(operation)
+		MP += value;
+	else
+		MP *= value;
+	if(MP > max_MP)
+	{
+		int result = MP - max_MP;
+		MP = max_MP;
+		return result;
+	}
+	if(MP < 0)
+	{
+		int result = MP;
+		MP = 0;
+		return result;
+	}
+	return 0;
 }
+
+void Unit::modify_AP(bool operation, double value)
+{
+	if(operation)
+		AP += value;
+	else
+		AP *= value;
+}
+
+void Unit::kill()
+{
+	dead = true;
+}
+
+void Unit::revive()
+{
+	dead = false;
+}
+
 
 void Unit::modify_current_initiative(int x)
 {

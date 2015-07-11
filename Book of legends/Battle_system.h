@@ -10,7 +10,7 @@
 
 using namespace std;
 
-//Constants
+//Constants:
 
 const int INITIATIVE_CONSTANT = 10;
 
@@ -42,7 +42,7 @@ public:
 	string name;
 	string background;
 private:
-	int value; //									It's for the game balance, I'm serious!
+	int value; //									It's for the game balance, I'm serious!				
 };
 
 //Important!: In "Item" class there is a field "heroes" that has to be modifyed with the adding of new heroes!
@@ -104,21 +104,32 @@ public:
 
 	short max_HP;//									Maximal hit points
 	short max_MP;//									Maximal mana points
-	short max_AP;//									Maximal action points
 	char initiative; //								Initiative of a unit
 	int value; //									It's for the game balance, I'm serious!
 
+	// Modifiers of stats (true = "+", false = "*" in first argument):
+	void modify_current_initiative(int);
+	int modify_HP(bool,double);
+	int modify_MP(bool,double);
+	void modify_AP(bool,double);
+	void kill();
+	void revive();
+
+	// Getters of Unit:
 	bool is_dead();
-	void modify_current_initiative(int); //			Adds x to current initiative of unit
 	int get_current_initiative();
+	int get_HP();
+	int get_MP();
+	int get_AP();
+
 	void show();
 
 private:
 	//Stats of a unit:
 
 	short HP; //									Current hit points
-	short MP;//										Current mana points
-	short AP;//										Current action points
+	short MP; //									Current mana points
+	short AP;//										Maximal action points
 
 	char current_initiative; //						Current initiative in battle for queueing
 	char hit_chance; //								Chance of a unit to hit, 0<hit_chance<100
@@ -130,6 +141,7 @@ private:
 	//Use of other classes:
 
 	vector <Ability*> abilities; //					List of abilities of a unit
+	vector <Ability*> applied_abilities; //			List of abilities, applied on a unit
 	vector <Item> arms; //							Items in the unit's hands
 	Armor armor; //									Armor unit is wearing
 	vector <Artifact> artifacts; //					List of artifacts unit is carryings
@@ -147,9 +159,15 @@ private:
 class Ability_Active: public Ability
 {
 public:
+	Ability_Active(); //							Constructor
+
+	void initialize_ability(Unit &); //				Used when ability is applied first time
+	void apply_ability(Unit &); //					Used every turn in battle
+	void remove_ability(Unit &); //					Used when ability is removed
 private:
 	short manacost; //								Amount of mana needed to use ability
 	short actioncost; //							Amount of action points needed to use ability
+	char duration_counter; //						Counter of a current stage of the effect
 };
 
 class Ability_Active_On_Target: public Ability_Active
@@ -210,11 +228,13 @@ class Battle
 public:
 	int process_situation(); //						Check whether someone is dead and add units to battle queue if there are none
 							 //						Returns 0 if party is dead, 2 if party wins, 1 if none of this
+	void process_unit(); //							Processing top of battle queue while it has action points
 private:
 	Party *party_in_battle; //						Pointer to a party of adventurers
 	Opponents *opponents_in_battle; //				Pointer to a party of enemies
 	queue <Unit*> battle_queue; //					Queue of acting units
 	vector <Ability_Active> *current_abilities;//	Abilities of a selected unit	
+	short selected_unit_AP; //						Current action points of selected unit
 };
 
 #endif 

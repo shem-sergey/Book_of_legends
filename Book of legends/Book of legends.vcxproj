@@ -76,6 +76,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Abilities.cpp" />
     <ClCompile Include="Battle_system.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
