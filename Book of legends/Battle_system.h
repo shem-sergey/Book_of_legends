@@ -107,13 +107,17 @@ public:
 	char initiative; //								Initiative of a unit
 	int value; //									It's for the game balance, I'm serious!
 
-	// Modifiers of stats (true = "+", false = "*" in first argument):
-	void modify_current_initiative(int);
-	int modify_HP(bool,double);
-	int modify_MP(bool,double);
-	void modify_AP(bool,double);
+	// Modifiers of stats:
+	void modify_current_initiative(double);	//	Adds argument to currrent initiative
+	int modify_HP(double); //					Adds argument to current HP, returns amount of HP over max_HP
+	int modify_MP(double); //					Adds argument to current MP, returns amount of MP over max_MP
+	void modify_max_HP(double); //				Multiplies max_HP and HP by argument
+	void modify_max_MP(double); //				Multiplies max_MP and MP by argument
+	void modify_AP(double); //					Adds argument to AP
 	void kill();
 	void revive();
+	void modify_hit_chance(double); //			Multiplies hit_chance by argument
+	void modify_dodge_chance(double); //		Multiplies dodge_chance by argument
 
 	// Getters of Unit:
 	bool is_dead();

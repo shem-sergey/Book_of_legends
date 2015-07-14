@@ -8,12 +8,9 @@ int Unit::get_HP() { return HP; }
 int Unit::get_MP() { return MP; }
 int Unit::get_AP() { return AP; }
 
-int Unit::modify_HP(bool operation, double value)
+int Unit::modify_HP(double value)
 {
-	if(operation)
 		HP += value;
-	else
-		HP *= value;
 	if(HP > max_HP)
 	{
 		int result = HP - max_HP;
@@ -22,13 +19,9 @@ int Unit::modify_HP(bool operation, double value)
 	}
 	return 0;
 }
-
-int Unit::modify_MP(bool operation, double value)
+int Unit::modify_MP(double value)
 {
-	if(operation)
 		MP += value;
-	else
-		MP *= value;
 	if(MP > max_MP)
 	{
 		int result = MP - max_MP;
@@ -43,29 +36,39 @@ int Unit::modify_MP(bool operation, double value)
 	}
 	return 0;
 }
-
-void Unit::modify_AP(bool operation, double value)
+void Unit::modify_AP(double value)
 {
-	if(operation)
 		AP += value;
-	else
-		AP *= value;
 }
-
+void Unit::modify_max_HP(double value)
+{
+	max_HP *= value;
+	HP *= value;
+}
+void Unit::modify_max_MP(double value)
+{
+	max_MP *= value;
+	MP *= value;
+}
 void Unit::kill()
 {
 	dead = true;
 }
-
 void Unit::revive()
 {
 	dead = false;
 }
-
-
-void Unit::modify_current_initiative(int x)
+void Unit::modify_current_initiative(double value)
 {
-	current_initiative += x;
+	current_initiative += value;
+}
+void Unit::modify_hit_chance(double value)
+{
+	hit_chance *= value;
+}
+void Unit::modify_dodge_chance(double value)
+{
+	dodge_chance *= value;
 }
 
 void Unit::show()
