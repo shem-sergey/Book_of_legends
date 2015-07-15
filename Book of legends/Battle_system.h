@@ -26,8 +26,6 @@ class Armor;
 class Unit;
 class Ability_Passive;
 class Ability_Active;
-class Ability_Active_On_Target;
-class Ability_Active_On_Group;
 class Hero;
 class Party;
 class Opponents;
@@ -35,6 +33,34 @@ class Opponents;
 //Secondly classes for implementing battle
 
 class Battle;
+
+class Effect
+{
+public:
+	Effect(){};
+	Effect(int duration, double value):duration(duration), value(value) {};
+
+	bool expired(int turn) //			True if effect should not be applied on the turn
+	{
+		return turn > duration;
+	}
+	bool is_instant() //				Shows whether effect is instant or continious
+	{
+		return duration == 0;
+	}
+	bool is_buff() //					Shows whether effect is a positive buff
+	{
+		return positive;
+	}
+
+	void initialize_effect(Unit &, Unit &){}; //				Method used when initializing effect
+	void apply_effect(Unit &, Unit &){}; //					Method used when applying effect
+	void remove_effect(Unit &, Unit &){}; //					Method used when removing effect
+
+	char duration; //						Duration of the effect
+	double value; //						Modifier of effect
+	bool positive; //						Shows whether effect is positive(buff) or negative(debuff)
+};
 
 class Ability
 {
@@ -127,7 +153,21 @@ public:
 	int get_MP();
 	int get_AP();
 
+	// Methods of a class:
+
+	Ability_Active &choose_ability(Battle &); //			Describes the way bot choose ability from the list in battle, has to be redefined for player in Hero class
+	Unit &choose_target_for_ability(Battle &, Ability_Active &); //			Describes the way bot choose target for ability in battle, has to be redefined for player in Hero class
+
 	void show();
+
+	//Use of other classes:
+
+	vector <Ability_Active* > abilities; //			List of abilities of a unit
+	vector <Ability_Active* > applied_abilities; //	List of active abilities, applied on a unit
+	vector <Item> arms; //							Items in the unit's hands
+	Armor armor; //									Armor unit is wearing
+	vector <Artifact> artifacts; //					List of artifacts unit is carryings
+	vector <Consumable_Item> consumables; //		List of consumable items
 
 private:
 	//Stats of a unit:
@@ -142,15 +182,6 @@ private:
 	double covered; //								AP modifier to attack this unit
 		
 	bool dead; //									Shows whether unit is dead in particular combat
-
-	//Use of other classes:
-
-	vector <Ability*> abilities; //					List of abilities of a unit
-	vector <Ability*> applied_abilities; //			List of abilities, applied on a unit
-	vector <Item> arms; //							Items in the unit's hands
-	Armor armor; //									Armor unit is wearing
-	vector <Artifact> artifacts; //					List of artifacts unit is carryings
-	vector <Consumable_Item> consumables; //		List of consumable items
 };
 
 class Ability_Passive: public Ability
@@ -164,17 +195,28 @@ private:
 class Ability_Active: public Ability
 {
 public:
-	Ability_Active(); //							Constructor
+	Ability_Active(int return_value = 0):return_value(return_value){}; //							Constructor
 
-	void initialize_ability(Unit &, Unit &); //		Used when ability is applied first time
-	void apply_ability(Unit &, Unit &); //			Used every turn in battle
-	void remove_ability(Unit &, Unit &); //			Used when ability is removed
+	int get_manacost();
+	int get_actioncost();
+
+	bool is_instant(); //							Shows whether all the effects are instant
+	bool is_buff(); //								Shows whether ability contains buff
+	bool is_debuff(); //							Shows whether ability contains debuff
+	bool expired(); //								True if ability should be removed
+
+	int initialize_ability(Unit &, Unit &); //		Used when ability is applied first time
+	void apply_ability(Unit &); //			Used every turn in battle
+	void remove_ability(Unit &); //			Used when ability is removed
 private:
 	short manacost; //								Amount of mana needed to use ability
 	short actioncost; //							Amount of action points needed to use ability
 	char duration_counter; //						Counter of a current stage of the effect
 
-	vector <Effect*> effects; //					Effects of particular ability
+	vector <Effect *> effects; //					Effects of particular ability
+	Unit *ability_caster; //						Stores caster after initialization\
+
+	int return_value; //							Uses to process special situations, can be changed in constructor ONLY. Zero by default
 };
 
 class Hero: public Unit

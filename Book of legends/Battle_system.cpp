@@ -76,6 +76,18 @@ void Unit::show()
 	cout << name << endl << background << endl;
 }
 
+Ability_Active & Unit::choose_ability(Battle & enviroment)
+{
+	Ability_Active blank;
+	return blank;
+}
+
+Unit & Unit::choose_target_for_ability(Battle & enviroment, Ability_Active & chosen_abilty)
+{
+	Unit blank;
+	return blank;
+}
+
 //Class Unit methods end here.
 
 //Class Hero methods begin here:
@@ -90,16 +102,66 @@ void Hero::show()
 
 //Class Ability_Active methods begin here:
 
-/*void Ability_Active::initialize_ability(Unit & caster, Unit & target)
+int Ability_Active::get_actioncost()
 {
-	caster.modify_AP((-1)*actioncost);
-	caster.modify_MP((-1)*manacost);
-	for(auto iterator = effects.begin(); iterator != effects.end(); ++iterator)
-	{
-		(*iterator).initialize_effect(caster, target);
+	return actioncost;
+}
+int Ability_Active::get_manacost()
+{
+	return manacost;
+}
 
-	}
-}*/
+bool Ability_Active::is_instant()
+{
+	bool result = 1;
+	for(auto iter = effects.begin(); iter != effects.end(); ++iter)
+		result *= (*(*iter)).is_instant();
+	return result;
+}
+bool Ability_Active::is_buff()
+{
+	for(auto iter = effects.begin(); iter != effects.end(); ++iter)
+		if((*(*iter)).is_buff())
+			return true;
+	return false;
+}
+bool Ability_Active::is_debuff()
+{
+	for(auto iter = effects.begin(); iter != effects.end(); ++iter)
+		if(!(*(*iter)).is_buff())
+			return true;
+	return false;
+}
+bool Ability_Active::expired()
+{
+	for(auto iter = effects.begin(); iter != effects.end(); ++iter)
+		if(!(*(*iter)).expired(duration_counter))
+			return false;
+	return true;
+}
+
+int Ability_Active::initialize_ability(Unit & caster, Unit & target)
+{
+	for(auto iter = effects.begin(); iter != effects.end(); ++iter)
+		(*(*iter)).initialize_effect(caster, target);
+	duration_counter = 0;
+	*ability_caster = caster;
+	return return_value;
+}
+
+void Ability_Active::apply_ability(Unit & target)
+{
+	for(auto iter = effects.begin(); iter != effects.end(); ++iter)
+		if((*(*iter)).expired(duration_counter))
+			(*(*iter)).apply_effect(*ability_caster, target);
+	++duration_counter;
+}
+
+void Ability_Active::remove_ability(Unit & target)
+{
+	for(auto iter = effects.begin(); iter != effects.end(); ++iter)
+		(*(*iter)).remove_effect(*ability_caster, target);
+}
 
 //Class Ability_Active methods end here.
 
@@ -190,7 +252,41 @@ int Battle::process_situation()
 
 int Battle::process_unit()
 {
+	int special_situation = 0; //								Used to process special situations, return value of initialize_ability. Zero by default
 
-	return 0;
+	Unit &active_unit = *(battle_queue.front()); //				Unit that will act in this turn
+	battle_queue.pop(); //										Popping battle queue
+
+	for(auto iterator = active_unit.applied_abilities.begin(); iterator != active_unit.applied_abilities.end(); ++iterator)
+	{
+		(*(*iterator)).apply_ability(active_unit); //			Applying all the abilities
+		if((*(*iterator)).expired()) //							And if some ability was expired
+		{
+			(*(*iterator)).remove_ability(active_unit);	//		Applying remove_ability and
+			active_unit.applied_abilities.erase(iterator); //	Removing it from list of applied abilities
+		}
+	}
+
+	if(!active_unit.is_dead()) //													Check if active unit is already dead
+		while(active_unit.get_AP() > 0 && (special_situation == 0)) //				Continie while active unit can act and stop if something happened
+		{
+			Ability_Active chosen_ability = active_unit.choose_ability(*this); //	Choose ability
+			Unit &ability_target = active_unit.choose_target_for_ability(*this, chosen_ability); //Choose target
+			if(chosen_ability.get_actioncost() <= active_unit.get_AP() && //	Check whether ability is usable
+			   chosen_ability.get_manacost() <= active_unit.get_MP())
+			{
+				active_unit.modify_AP((-1)*chosen_ability.get_actioncost()); //							Pay for ability
+				active_unit.modify_MP((-1)*chosen_ability.get_manacost());
+
+				special_situation = chosen_ability.initialize_ability(active_unit, ability_target); //	Initialize ability
+
+				if(!chosen_ability.is_instant())
+					ability_target.applied_abilities.push_back(&chosen_ability); //						If not instant, place ability to applied abilities of a target
+			}
+			// Mark ability as used?
+		}
+
+		return special_situation;
 }
+
 //Class Battle methods end here.

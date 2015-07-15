@@ -2,31 +2,7 @@
 
 // File contains the basics of ability system of "Book of legends"
 
-class Effect
-{
-public:
-	Effect(int duration, double value):duration(duration), value(value) {};
-	bool expired(int turn)
-	{
-		return turn > duration;
-	}
-	bool is_instant()
-	{
-		return duration == 0;
-	}
-	bool is_buff()
-	{
-		return positive;
-	}
-
-	void initialize_effect(Unit &, Unit &); //				Method used when initializing effect
-	void apply_effect(Unit &, Unit &); //					Method used when applying effect
-	void remove_effect(Unit &, Unit &); //					Method used when removing effect
-
-	char duration; //						Duration of the effect
-	double value; //						Modifier of effect
-	bool positive; //						Shows whether effect is positive(buff) or negative(debuff)
-};
+class Effect;
 
 /*template for Effect:
 class :public Effect //			Description
