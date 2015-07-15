@@ -14,6 +14,10 @@ public:
 	{
 		return duration == 0;
 	}
+	bool is_buff()
+	{
+		return positive;
+	}
 
 	void initialize_effect(Unit &, Unit &); //				Method used when initializing effect
 	void apply_effect(Unit &, Unit &); //					Method used when applying effect
@@ -21,13 +25,14 @@ public:
 
 	char duration; //						Duration of the effect
 	double value; //						Modifier of effect
+	bool positive; //						Shows whether effect is positive(buff) or negative(debuff)
 };
 
-//template for Effect:
+/*template for Effect:
 class :public Effect //			Description
 {
 public:
-	(int duration, double value):Effect(duration, value) {};
+	(int duration, double value):Effect(duration, value) {positive = };
 
 	void initialize_effect(Unit & caster, Unit & target)
 	{
@@ -38,14 +43,14 @@ public:
 	{
 		
 	}
-};
+};*/
 
 // List of effects on characters:
 
 class HP_Affect:public Effect //				Instantly adds value to current HP or duration turns increases current HP by value
 {
 public:
-	HP_Affect(int duration, double value):Effect(duration, value), HP_override(0) {};
+	HP_Affect(int duration, double value):Effect(duration, value), HP_override(0) {positive = (value > 0);};
 
 	void initialize_effect(Unit & caster, Unit & target)
 	{
@@ -73,10 +78,10 @@ private:
 	short HP_override; //							Stores the amount of HP that was added over max_HP
 };
 
-class HP_Affect_temporary:public Effect //			Gives a temporary shield that absorbs damage
+class HP_Affect_temporary:public Effect //			Gives a temporary shield that absorbs damage, does nothing if value is non-positive
 {
 public:
-	HP_Affect_temporary(int duration, double value):Effect(duration, value), HP_pool(0) {};
+	HP_Affect_temporary(int duration, double value):Effect(duration, value), HP_pool(0) {positive = true;};
 
 	void initialize_effect(Unit & caster, Unit & target)
 	{
@@ -118,10 +123,10 @@ private:
 	short HP_override; //				Stores the amount of HP that was added over max_HP
 };
 
-class MP_Affect_temporary:public Effect //			Gives a temporary mana to use abilities
+class MP_Affect_temporary:public Effect //			Gives a temporary mana to use abilities, does nothing if value is non-positive
 {
 public:
-	MP_Affect_temporary(int duration, double value):Effect(duration, value), MP_pool(0) {};
+	MP_Affect_temporary(int duration, double value):Effect(duration, value), MP_pool(0) {positive = true;};
 
 	void initialize_effect(Unit & caster, Unit & target)
 	{
@@ -166,7 +171,7 @@ private:
 class MP_Affect:public Effect //				Instantly adds value to current MP or duration turns increases current MP by value
 {
 public:
-	MP_Affect(int duration, double value):Effect(duration, value), MP_override(0) {};
+	MP_Affect(int duration, double value):Effect(duration, value), MP_override(0) {positive = (value > 0);};
 
 	void initialize_effect(Unit & caster, Unit & target)
 	{
@@ -192,7 +197,7 @@ private:
 class AP_Affect:public Effect //			Adds value to AP and decreases AP after duration
 {
 public:
-	AP_Affect(int duration, double value):Effect(duration, value) {};
+	AP_Affect(int duration, double value):Effect(duration, value) {positive = (value > 0);};
 
 	void initialize_effect(Unit & caster, Unit & target)
 	{
@@ -209,7 +214,7 @@ public:
 class max_HP_Affect:public Effect //			Multiply max_HP with value and change current HP so that percentage of health be the same for duration
 {
 public:
-	max_HP_Affect(int duration, double value):Effect(duration, value) {};
+	max_HP_Affect(int duration, double value):Effect(duration, value) {positive = (value > 1);};
 
 	void initialize_effect(Unit & caster, Unit & target)
 	{
@@ -225,7 +230,7 @@ public:
 class max_MP_Affect:public Effect //			Multiply max_MP with value and change current MP so that percentage of health be the same for duration
 {
 public:
-	max_MP_Affect(int duration, double value):Effect(duration, value) {};
+	max_MP_Affect(int duration, double value):Effect(duration, value) {positive = (value > 1);};
 
 	void initialize_effect(Unit & caster, Unit & target)
 	{
@@ -241,7 +246,7 @@ public:
 class Hit_Chance_Affect:public Effect //			Multiplies hit chance of target by value for duration
 {
 public:
-	Hit_Chance_Affect (int duration, double value):Effect(duration, value) {};
+	Hit_Chance_Affect (int duration, double value):Effect(duration, value) {positive = (value > 1);};
 
 	void initialize_effect(Unit & caster, Unit & target)
 	{
@@ -258,7 +263,7 @@ public:
 class Dodge_Chance_Affect:public Effect //			Multiplies dodge chance of target by value for duration
 {
 public:
-	Dodge_Chance_Affect (int duration, double value):Effect(duration, value) {};
+	Dodge_Chance_Affect (int duration, double value):Effect(duration, value) {positive = (value > 1);};
 
 	void initialize_effect(Unit & caster, Unit & target)
 	{

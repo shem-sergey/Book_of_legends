@@ -16,6 +16,7 @@ const int INITIATIVE_CONSTANT = 10;
 
 //Firstly basic classes for storing data:
 
+class Effect;
 class Ability;
 class Item;
 class Consumable_Item;
@@ -165,28 +166,15 @@ class Ability_Active: public Ability
 public:
 	Ability_Active(); //							Constructor
 
-	void initialize_ability(Unit &); //				Used when ability is applied first time
-	void apply_ability(Unit &); //					Used every turn in battle
-	void remove_ability(Unit &); //					Used when ability is removed
+	void initialize_ability(Unit &, Unit &); //		Used when ability is applied first time
+	void apply_ability(Unit &, Unit &); //			Used every turn in battle
+	void remove_ability(Unit &, Unit &); //			Used when ability is removed
 private:
 	short manacost; //								Amount of mana needed to use ability
 	short actioncost; //							Amount of action points needed to use ability
 	char duration_counter; //						Counter of a current stage of the effect
-};
 
-class Ability_Active_On_Target: public Ability_Active
-{
-public:
-	void apply_ability(Unit*){}; //					Method used to apply the ability
-private:
-};
-
-class Ability_Active_On_Group: public Ability_Active
-{
-public:
-	template <typename T>
-	void apply_ability(T*){}; //					Method used to apply the ability
-private:
+	vector <Effect*> effects; //					Effects of particular ability
 };
 
 class Hero: public Unit
@@ -232,7 +220,8 @@ class Battle
 public:
 	int process_situation(); //						Check whether someone is dead and add units to battle queue if there are none
 							 //						Returns 0 if party is dead, 2 if party wins, 1 if none of this
-	void process_unit(); //							Processing top of battle queue while it has action points
+	int process_unit(); //							Processing top of battle queue while it has action points
+							 //						Returns the code of special event, 0 - nothing special happened
 private:
 	Party *party_in_battle; //						Pointer to a party of adventurers
 	Opponents *opponents_in_battle; //				Pointer to a party of enemies

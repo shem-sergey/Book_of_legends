@@ -88,6 +88,21 @@ void Hero::show()
 
 //Class Hero methods end here.
 
+//Class Ability_Active methods begin here:
+
+/*void Ability_Active::initialize_ability(Unit & caster, Unit & target)
+{
+	caster.modify_AP((-1)*actioncost);
+	caster.modify_MP((-1)*manacost);
+	for(auto iterator = effects.begin(); iterator != effects.end(); ++iterator)
+	{
+		(*iterator).initialize_effect(caster, target);
+
+	}
+}*/
+
+//Class Ability_Active methods end here.
+
 //Class Battle methods begin here:
 
 int Battle::process_situation()
@@ -173,4 +188,9 @@ int Battle::process_situation()
 	return 1;
 }
 
+int Battle::process_unit()
+{
+
+	return 0;
+}
 //Class Battle methods end here.
