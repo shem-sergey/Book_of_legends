@@ -54,7 +54,7 @@ public:
 	}
 
 	void initialize_effect(Unit &, Unit &){}; //				Method used when initializing effect
-	void apply_effect(Unit &, Unit &){}; //					Method used when applying effect
+	void apply_effect(Unit &, Unit &){}; //						Method used when applying effect
 	void remove_effect(Unit &, Unit &){}; //					Method used when removing effect
 
 	char duration; //						Duration of the effect
@@ -136,6 +136,7 @@ public:
 
 	// Modifiers of stats:
 	void modify_current_initiative(double);	//	Adds argument to currrent initiative
+	int modify_initiative(double);	//			Adds argument to initiative, returns amount of initiative over INITIATIVE_CONSTANT or amount of initiative below 1
 	int modify_HP(double); //					Adds argument to current HP, returns amount of HP over max_HP
 	int modify_MP(double); //					Adds argument to current MP, returns amount of MP over max_MP
 	void modify_max_HP(double); //				Multiplies max_HP and HP by argument
@@ -145,6 +146,7 @@ public:
 	void revive();
 	void modify_hit_chance(double); //			Multiplies hit_chance by argument
 	void modify_dodge_chance(double); //		Multiplies dodge_chance by argument
+	void modify_covered(double); //				Multiplies covered by argument
 
 	// Getters of Unit:
 	bool is_dead();
@@ -199,15 +201,19 @@ public:
 
 	int get_manacost();
 	int get_actioncost();
+	int get_duration_counter();
+	Unit & get_ability_caster();
 
 	bool is_instant(); //							Shows whether all the effects are instant
 	bool is_buff(); //								Shows whether ability contains buff
 	bool is_debuff(); //							Shows whether ability contains debuff
 	bool expired(); //								True if ability should be removed
 
-	int initialize_ability(Unit &, Unit &); //		Used when ability is applied first time
-	void apply_ability(Unit &); //			Used every turn in battle
-	void remove_ability(Unit &); //			Used when ability is removed
+	void operator++(); //							Adds one to duration counter
+
+	int initialize_ability(Unit &, Unit &, int turn = 0); //Used when ability is applied first time, begins with duration_counter = turn
+	void apply_ability(Unit &); //					Used every turn in battle
+	void remove_ability(Unit &); //					Used when ability is removed
 private:
 	short manacost; //								Amount of mana needed to use ability
 	short actioncost; //							Amount of action points needed to use ability

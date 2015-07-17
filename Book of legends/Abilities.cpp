@@ -8,7 +8,7 @@ class Effect;
 class :public Effect //			Description
 {
 public:
-	(int duration, double value):Effect(duration, value) {positive = };
+	(int duration, double value):Effect(duration, value) {positive = ();};
 
 	void initialize_effect(Unit & caster, Unit & target)
 	{
@@ -190,7 +190,12 @@ public:
 class max_HP_Affect:public Effect //			Multiply max_HP with value and change current HP so that percentage of health be the same for duration
 {
 public:
-	max_HP_Affect(int duration, double value):Effect(duration, value) {positive = (value > 1);};
+	max_HP_Affect(int duration, double value):Effect(duration, value) 
+	{
+		if(duration == 0) // Must not be instant
+			duration++;
+		positive = (value > 1);
+	};
 
 	void initialize_effect(Unit & caster, Unit & target)
 	{
@@ -206,7 +211,12 @@ public:
 class max_MP_Affect:public Effect //			Multiply max_MP with value and change current MP so that percentage of health be the same for duration
 {
 public:
-	max_MP_Affect(int duration, double value):Effect(duration, value) {positive = (value > 1);};
+	max_MP_Affect(int duration, double value):Effect(duration, value) 
+	{
+		if(duration == 0) // Must not be instant
+			duration++;
+		positive = (value > 1);
+	};
 
 	void initialize_effect(Unit & caster, Unit & target)
 	{
@@ -222,7 +232,12 @@ public:
 class Hit_Chance_Affect:public Effect //			Multiplies hit chance of target by value for duration
 {
 public:
-	Hit_Chance_Affect (int duration, double value):Effect(duration, value) {positive = (value > 1);};
+	Hit_Chance_Affect (int duration, double value):Effect(duration, value) 
+	{		
+		if(duration == 0) // Must not be instant
+			duration++;
+		positive = (value > 1);
+	};
 
 	void initialize_effect(Unit & caster, Unit & target)
 	{
@@ -239,7 +254,12 @@ public:
 class Dodge_Chance_Affect:public Effect //			Multiplies dodge chance of target by value for duration
 {
 public:
-	Dodge_Chance_Affect (int duration, double value):Effect(duration, value) {positive = (value > 1);};
+	Dodge_Chance_Affect (int duration, double value):Effect(duration, value) 
+	{
+		if(duration == 0) // Must not be instant
+			duration++;
+		positive = (value > 1);
+	};
 
 	void initialize_effect(Unit & caster, Unit & target)
 	{
@@ -251,4 +271,106 @@ public:
 	{
 		target.modify_dodge_chance(1/value);
 	}
+};
+
+class Covered_Affect:public Effect //			Multiplies field "covered" of a target by value for a duration
+{
+public:
+	Covered_Affect(int duration, double value):Effect(duration, value) {positive = (value > 1); };
+
+	void initialize_effect(Unit & caster, Unit & target)
+	{
+		target.modify_covered(value);
+	}
+
+	void remove_effect(Unit & caster, Unit & target)
+	{
+		target.modify_covered(1/value);
+	}
+};
+
+class Current_Initiative_Affect:public Effect //			Adds value to current initiative of a unit. Sets everything back after duration
+{
+public:
+	Current_Initiative_Affect(int duration, double value):Effect(duration, value) {positive = (value > 0);};
+
+	void initialize_effect(Unit & caster, Unit & target)
+	{
+		target.modify_current_initiative(value);
+	}
+
+	void remove_effect(Unit & caster, Unit & target)
+	{
+		target.modify_current_initiative((-1)*value);
+	}
+};
+
+class Initiative_Affect:public Effect //			Adds value to initiative for duration, initiative can not be modified to be less than 1 or more then INITIATIVE_CONSTANT
+{
+public:
+	Initiative_Affect(int duration, double value):Effect(duration, value), initiative_override(0) 
+	{		
+		if(duration == 0) // Must not be instant
+			duration++;
+		positive = (value > 0);
+	};
+
+	void initialize_effect(Unit & caster, Unit & target)
+	{
+		initiative_override = target.modify_initiative(value);
+	}
+
+	void remove_effect(Unit & caster, Unit & target)
+	{
+		target.modify_initiative(initiative_override);
+		target.modify_initiative((-1)*value);
+	}
+private:
+	char initiative_override;
+};
+
+class Remove_Buff_Affect:public Effect //			Removes all buffs from target if value == 0, removes all debuffs otherwise. If not instant, sets them back if they are not expired
+{
+public:
+	Remove_Buff_Affect(int duration, double value):Effect(duration, value) {positive = (value != 0);};
+
+	void initialize_effect(Unit & caster, Unit & target) // Take away all buffs/debuffs
+	{
+		for(auto iter = target.applied_abilities.begin(); iter != target.applied_abilities.end(); ++iter)
+			if(value)
+			{
+				if((*iter)->is_debuff()) // If is a debuff
+				{
+					taken_buffs.push_back(*iter); //		Store it in taken_buffs
+					(*iter)->remove_ability(target); //		Apply remove_ability
+					target.applied_abilities.erase(iter); //Remove from applied_abilities
+				}
+			}
+			else
+			{
+				if((*iter)->is_buff()) // If is a buff/debuff
+				{
+					taken_buffs.push_back(*iter); //		Store it in taken_buffs
+					(*iter)->remove_ability(target); //		Apply remove_ability
+					target.applied_abilities.erase(iter); //Remove from applied_abilities
+				};
+			}
+	}
+
+	void apply_effect(Unit & caster, Unit & target) //	Ensure that their clock is still ticking
+	{
+		for(auto iter = taken_buffs.begin(); iter != taken_buffs.end(); ++iter)
+		{
+			(*(*iter))++;
+			if((*iter)->expired())
+				taken_buffs.erase(iter);
+		}
+	}
+
+	void remove_effect(Unit & caster, Unit & target) //	Return unexpired ones
+	{
+		for(auto iter = taken_buffs.begin(); iter != taken_buffs.end(); ++iter)
+			(*(*iter)).initialize_ability((*(*iter)).get_ability_caster(),target,(*(*iter)).get_duration_counter());
+	}
+	vector <Ability_Active *> taken_buffs;
 };

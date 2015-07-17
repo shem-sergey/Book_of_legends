@@ -62,6 +62,22 @@ void Unit::modify_current_initiative(double value)
 {
 	current_initiative += value;
 }
+int Unit::modify_initiative(double value) // Initiative can not be less then 1 or more than INITIATIVE_CONSTANT
+{
+	int result = 0;
+	initiative += value;
+	if(initiative < 1)
+	{
+		result = initiative - 1;
+		initiative = 1;
+	}
+	if(initiative > INITIATIVE_CONSTANT)
+	{
+		result = initiative - INITIATIVE_CONSTANT;
+		initiative = INITIATIVE_CONSTANT;
+	}
+	return result;
+}
 void Unit::modify_hit_chance(double value)
 {
 	hit_chance *= value;
@@ -69,6 +85,10 @@ void Unit::modify_hit_chance(double value)
 void Unit::modify_dodge_chance(double value)
 {
 	dodge_chance *= value;
+}
+void Unit::modify_covered(double value)
+{
+	covered *= value;
 }
 
 void Unit::show()
@@ -110,6 +130,14 @@ int Ability_Active::get_manacost()
 {
 	return manacost;
 }
+int Ability_Active::get_duration_counter()
+{
+	return duration_counter;
+}
+Unit & Ability_Active::get_ability_caster()
+{
+	return *ability_caster;
+}
 
 bool Ability_Active::is_instant()
 {
@@ -140,11 +168,16 @@ bool Ability_Active::expired()
 	return true;
 }
 
-int Ability_Active::initialize_ability(Unit & caster, Unit & target)
+void Ability_Active::operator++()
+{
+	duration_counter++;
+}
+
+int Ability_Active::initialize_ability(Unit & caster, Unit & target, int turn)
 {
 	for(auto iter = effects.begin(); iter != effects.end(); ++iter)
 		(*(*iter)).initialize_effect(caster, target);
-	duration_counter = 0;
+	duration_counter = turn;
 	*ability_caster = caster;
 	return return_value;
 }
@@ -283,7 +316,6 @@ int Battle::process_unit()
 				if(!chosen_ability.is_instant())
 					ability_target.applied_abilities.push_back(&chosen_ability); //						If not instant, place ability to applied abilities of a target
 			}
-			// Mark ability as used?
 		}
 
 		return special_situation;
