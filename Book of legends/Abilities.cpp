@@ -339,19 +339,19 @@ public:
 		for(auto iter = target.applied_abilities.begin(); iter != target.applied_abilities.end(); ++iter)
 			if(value)
 			{
-				if((*iter)->is_debuff()) // If is a debuff
+				if(iter->is_debuff()) // If is a debuff
 				{
 					taken_buffs.push_back(*iter); //		Store it in taken_buffs
-					(*iter)->remove_ability(target); //		Apply remove_ability
+					iter->remove_ability(target); //		Apply remove_ability
 					target.applied_abilities.erase(iter); //Remove from applied_abilities
 				}
 			}
 			else
 			{
-				if((*iter)->is_buff()) // If is a buff/debuff
+				if(iter->is_buff()) // If is a buff/debuff
 				{
 					taken_buffs.push_back(*iter); //		Store it in taken_buffs
-					(*iter)->remove_ability(target); //		Apply remove_ability
+					iter->remove_ability(target); //		Apply remove_ability
 					target.applied_abilities.erase(iter); //Remove from applied_abilities
 				};
 			}
@@ -361,8 +361,8 @@ public:
 	{
 		for(auto iter = taken_buffs.begin(); iter != taken_buffs.end(); ++iter)
 		{
-			(*(*iter))++;
-			if((*iter)->expired())
+			++(*iter);
+			if((iter)->expired())
 				taken_buffs.erase(iter);
 		}
 	}
@@ -370,7 +370,85 @@ public:
 	void remove_effect(Unit & caster, Unit & target) //	Return unexpired ones
 	{
 		for(auto iter = taken_buffs.begin(); iter != taken_buffs.end(); ++iter)
-			(*(*iter)).initialize_ability((*(*iter)).get_ability_caster(),target,(*(*iter)).get_duration_counter());
+			(*iter).initialize_ability((*iter).get_ability_caster(),target,(*iter).get_duration_counter());
 	}
-	vector <Ability_Active *> taken_buffs;
+	vector <Ability_Active> taken_buffs;
+};
+
+class Silence_Affect:public Effect //			Prevents from using abilities except for Attack
+{
+public:
+	Silence_Affect(int duration, double value):Effect(duration, value) 
+	{
+		if(duration == 0) // Must not be instant
+			duration++;
+		positive = false;
+	};
+
+	void initialize_effect(Unit & caster, Unit & target)
+	{
+		for(auto iterator = target.abilities.begin(); iterator != target.abilities.end(); ++iterator)
+			if(iterator->get_return_value() != 1)
+			{
+				removed_abilities.push_back(*iterator); //			Put ability into temporary storage
+				target.abilities.erase(iterator); //				Remove ability from target
+			}
+	}
+
+	void remove_effect(Unit & caster, Unit & target)
+	{
+		for(auto iterator = removed_abilities.begin(); iterator != removed_abilities.end(); ++iterator)
+			target.abilities.push_back(*iterator);
+		removed_abilities.clear();
+	}
+
+private:
+	vector <Ability_Active> removed_abilities; //		Storage for temporary removed abilities
+};
+
+class Death_Affect:public Effect //			Kills target, sets current hp to 0, sets current_initiative to 0 if value == 0, revives with max hp if duration != 0, with REVIVE_CONSTANT% hp otherwise otherwise
+{
+public:
+	Death_Affect(int duration, double value):Effect(duration, value) {positive = (value != 0);};
+
+	void initialize_effect(Unit & caster, Unit & target)
+	{
+		if(value)
+			// Revive
+			if(target.is_dead())
+		{
+			target.revive();
+			if(duration)
+				target.modify_HP(target.max_HP);
+			else
+				target.modify_HP(target.max_HP * REVIVE_CONSTANT / 100);
+		}
+		else
+		{
+			// Kill
+			HP_buffer = target.get_HP();
+			target.modify_HP((-1) * target.get_HP());
+			target.modify_current_initiative((-1) * target.get_current_initiative());
+			target.kill();
+		}
+	}
+
+	void remove_effect(Unit & caster, Unit & target)
+	{
+		if(value)
+			// Unrevive
+		{
+			target.kill();
+			target.modify_HP((-1) * target.get_HP());
+		}
+		else
+			// Unkill
+		if(target.is_dead())
+		{
+			target.revive();
+			target.modify_HP(HP_buffer);
+		}
+	}
+private:
+	int HP_buffer; //			Stores HP of killed character until it is revived
 };

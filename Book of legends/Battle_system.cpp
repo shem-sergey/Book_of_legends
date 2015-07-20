@@ -7,6 +7,7 @@ int Unit::get_current_initiative() {  return current_initiative;  }
 int Unit::get_HP() { return HP; }
 int Unit::get_MP() { return MP; }
 int Unit::get_AP() { return AP; }
+int Unit::get_hit_chance() { return hit_chance; }
 
 int Unit::modify_HP(double value)
 {
@@ -15,6 +16,12 @@ int Unit::modify_HP(double value)
 	{
 		int result = HP - max_HP;
 		HP = max_HP;
+		return result;
+	}
+	if(HP < 0)
+	{
+		int result = 0 - HP;
+		HP = 0;
 		return result;
 	}
 	return 0;
@@ -120,6 +127,15 @@ void Hero::show()
 
 //Class Hero methods end here.
 
+//Class Weapon methods begin here:
+
+int Weapon::get_hit_modifier()
+{
+	return to_hit_modifier;
+}
+
+//Class Weapon methods end here.
+
 //Class Ability_Active methods begin here:
 
 int Ability_Active::get_actioncost()
@@ -134,6 +150,10 @@ int Ability_Active::get_duration_counter()
 {
 	return duration_counter;
 }
+int Ability_Active::get_return_value()
+{
+	return return_value;
+}
 Unit & Ability_Active::get_ability_caster()
 {
 	return *ability_caster;
@@ -143,27 +163,27 @@ bool Ability_Active::is_instant()
 {
 	bool result = 1;
 	for(auto iter = effects.begin(); iter != effects.end(); ++iter)
-		result *= (*(*iter)).is_instant();
+		result *= iter->is_instant();
 	return result;
 }
 bool Ability_Active::is_buff()
 {
 	for(auto iter = effects.begin(); iter != effects.end(); ++iter)
-		if((*(*iter)).is_buff())
+		if(iter->is_buff())
 			return true;
 	return false;
 }
 bool Ability_Active::is_debuff()
 {
 	for(auto iter = effects.begin(); iter != effects.end(); ++iter)
-		if(!(*(*iter)).is_buff())
+		if(!iter->is_buff())
 			return true;
 	return false;
 }
 bool Ability_Active::expired()
 {
 	for(auto iter = effects.begin(); iter != effects.end(); ++iter)
-		if(!(*(*iter)).expired(duration_counter))
+		if(!iter->expired(duration_counter))
 			return false;
 	return true;
 }
@@ -176,7 +196,7 @@ void Ability_Active::operator++()
 int Ability_Active::initialize_ability(Unit & caster, Unit & target, int turn)
 {
 	for(auto iter = effects.begin(); iter != effects.end(); ++iter)
-		(*(*iter)).initialize_effect(caster, target);
+		iter->initialize_effect(caster, target);
 	duration_counter = turn;
 	*ability_caster = caster;
 	return return_value;
@@ -185,18 +205,33 @@ int Ability_Active::initialize_ability(Unit & caster, Unit & target, int turn)
 void Ability_Active::apply_ability(Unit & target)
 {
 	for(auto iter = effects.begin(); iter != effects.end(); ++iter)
-		if((*(*iter)).expired(duration_counter))
-			(*(*iter)).apply_effect(*ability_caster, target);
+		if(iter->expired(duration_counter))
+			iter->apply_effect(*ability_caster, target);
 	++duration_counter;
 }
 
 void Ability_Active::remove_ability(Unit & target)
 {
 	for(auto iter = effects.begin(); iter != effects.end(); ++iter)
-		(*(*iter)).remove_effect(*ability_caster, target);
+		iter->remove_effect(*ability_caster, target);
 }
 
 //Class Ability_Active methods end here.
+
+//Class Attack methods begin here.
+
+Attack::Attack(int dam, int to_hit):Ability_Active(1), damage(dam), to_hit_modifier(to_hit)
+{
+	//Check whether all effects of ability are instant.
+}
+
+int Attack::initialize_ability(Unit & caster, Unit & target, int turn)
+{
+	// Calculate to-hit chance
+	return 1;
+}
+
+//Class Attack methods end here:
 
 //Class Battle methods begin here:
 
@@ -292,16 +327,16 @@ int Battle::process_unit()
 
 	for(auto iterator = active_unit.applied_abilities.begin(); iterator != active_unit.applied_abilities.end(); ++iterator)
 	{
-		(*(*iterator)).apply_ability(active_unit); //			Applying all the abilities
-		if((*(*iterator)).expired()) //							And if some ability was expired
+		iterator->apply_ability(active_unit); //			Applying all the abilities
+		if(iterator->expired()) //							And if some ability was expired
 		{
-			(*(*iterator)).remove_ability(active_unit);	//		Applying remove_ability and
+			iterator->remove_ability(active_unit);	//		Applying remove_ability and
 			active_unit.applied_abilities.erase(iterator); //	Removing it from list of applied abilities
 		}
 	}
 
 	if(!active_unit.is_dead()) //													Check if active unit is already dead
-		while(active_unit.get_AP() > 0 && (special_situation == 0)) //				Continie while active unit can act and stop if something happened
+		while(active_unit.get_AP() > 0) //				Continie while active unit can act
 		{
 			Ability_Active chosen_ability = active_unit.choose_ability(*this); //	Choose ability
 			Unit &ability_target = active_unit.choose_target_for_ability(*this, chosen_ability); //Choose target
@@ -314,8 +349,9 @@ int Battle::process_unit()
 				special_situation = chosen_ability.initialize_ability(active_unit, ability_target); //	Initialize ability
 
 				if(!chosen_ability.is_instant())
-					ability_target.applied_abilities.push_back(&chosen_ability); //						If not instant, place ability to applied abilities of a target
+					ability_target.applied_abilities.push_back(chosen_ability); //						If not instant, place ability to applied abilities of a target
 			}
+			// Here are all checks for special situations
 		}
 
 		return special_situation;

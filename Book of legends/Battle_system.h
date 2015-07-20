@@ -12,11 +12,13 @@ using namespace std;
 
 //Constants:
 
-const int INITIATIVE_CONSTANT = 10;
+const int INITIATIVE_CONSTANT = 10; //			Number of initiative that is needed to be accumulated to make turn
+const int REVIVE_CONSTANT = 10;	//				Percent of hp after revival
 
 //Firstly basic classes for storing data:
 
 class Effect;
+class Attack_Affect;
 class Ability;
 class Item;
 class Consumable_Item;
@@ -72,8 +74,6 @@ private:
 	int value; //									It's for the game balance, I'm serious!				
 };
 
-//Important!: In "Item" class there is a field "heroes" that has to be modifyed with the adding of new heroes!
-
 class Item
 {
 public:
@@ -84,7 +84,6 @@ private:
 	int value; //									It's for the game balance, I'm serious!
 
 	int cost; //									Cost of item in gold pieces
-	vector <char> heroes; //						List of heroes that can use this item
 
 	vector <Ability*> abilities; //					List of abilities of an item
 };
@@ -99,10 +98,11 @@ private:
 class Weapon: public Item
 {
 public:
+	int get_hit_modifier();
 private:
 	char to_hit_modifier; //						Displays the inprovement of to-hit chance while hitting with this weapon
 	char damage; //									Damage, done by attack with this weapon
-	double AP_modifyier; //							Modifyer of action points needed to hit with this weapon
+	double AP_modifier; //							Modifyer of action points needed to hit with this weapon
 	bool twohanded; //								Displays whether the second hand can be used
 };
 
@@ -129,8 +129,8 @@ public:
 
 	// Public stats of the unit:
 
-	short max_HP;//									Maximal hit points
-	short max_MP;//									Maximal mana points
+	short max_HP; //								Maximal hit points
+	short max_MP; //								Maximal mana points
 	char initiative; //								Initiative of a unit
 	int value; //									It's for the game balance, I'm serious!
 
@@ -154,6 +154,7 @@ public:
 	int get_HP();
 	int get_MP();
 	int get_AP();
+	int get_hit_chance();
 
 	// Methods of a class:
 
@@ -164,8 +165,8 @@ public:
 
 	//Use of other classes:
 
-	vector <Ability_Active* > abilities; //			List of abilities of a unit
-	vector <Ability_Active* > applied_abilities; //	List of active abilities, applied on a unit
+	vector <Ability_Active> abilities; //			List of abilities of a unit
+	vector <Ability_Active> applied_abilities; //	List of active abilities, applied on a unit
 	vector <Item> arms; //							Items in the unit's hands
 	Armor armor; //									Armor unit is wearing
 	vector <Artifact> artifacts; //					List of artifacts unit is carryings
@@ -202,6 +203,7 @@ public:
 	int get_manacost();
 	int get_actioncost();
 	int get_duration_counter();
+	int get_return_value();
 	Unit & get_ability_caster();
 
 	bool is_instant(); //							Shows whether all the effects are instant
@@ -219,10 +221,21 @@ private:
 	short actioncost; //							Amount of action points needed to use ability
 	char duration_counter; //						Counter of a current stage of the effect
 
-	vector <Effect *> effects; //					Effects of particular ability
+	vector <Effect> effects; //						Effects of particular ability
 	Unit *ability_caster; //						Stores caster after initialization\
 
 	int return_value; //							Uses to process special situations, can be changed in constructor ONLY. Zero by default
+				   	  //							If return value is equal to 1, this abillity is Attack
+};
+
+class Attack:public Ability_Active
+{
+public:
+	Attack(int,int);
+	int initialize_ability(Unit &, Unit &, int);
+private:
+	short damage; //				Damage modifier of ability
+	short to_hit_modifier; //		To hit modifier of ability
 };
 
 class Hero: public Unit
