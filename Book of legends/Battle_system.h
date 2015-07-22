@@ -7,6 +7,7 @@
 #include <vector>
 #include <queue>
 #include <algorithm>
+#include <ctime>
 
 using namespace std;
 
@@ -14,23 +15,24 @@ using namespace std;
 
 const int INITIATIVE_CONSTANT = 10; //			Number of initiative that is needed to be accumulated to make turn
 const int REVIVE_CONSTANT = 10;	//				Percent of hp after revival
+const int NUMBER_OF_WEAPON_TYPES = 10; //		Number of weapon types in a game
 
 //Firstly basic classes for storing data:
 
-class Effect;
-class Attack_Affect;
 class Ability;
-class Item;
-class Consumable_Item;
-class Weapon;
-class Artifact;
-class Armor;
-class Unit;
-class Ability_Passive;
 class Ability_Active;
+class Ability_Passive;
+class Armor;
+class Artifact;
+class Attack;
+class Consumable_Item;
+class Effect;
 class Hero;
-class Party;
+class Item;
 class Opponents;
+class Party;
+class Unit;
+class Weapon;
 
 //Secondly classes for implementing battle
 
@@ -84,7 +86,6 @@ private:
 	int value; //									It's for the game balance, I'm serious!
 
 	int cost; //									Cost of item in gold pieces
-
 	vector <Ability*> abilities; //					List of abilities of an item
 };
 
@@ -99,11 +100,15 @@ class Weapon: public Item
 {
 public:
 	int get_hit_modifier();
+	int get_type();
+	int get_damage();
+	double get_AP_modifier();
 private:
 	char to_hit_modifier; //						Displays the inprovement of to-hit chance while hitting with this weapon
-	char damage; //									Damage, done by attack with this weapon
+	short damage; //									Damage, done by attack with this weapon
 	double AP_modifier; //							Modifyer of action points needed to hit with this weapon
 	bool twohanded; //								Displays whether the second hand can be used
+	int type; //									Type of a weapon, look it up in a special table
 };
 
 class Artifact: public Item
@@ -155,6 +160,10 @@ public:
 	int get_MP();
 	int get_AP();
 	int get_hit_chance();
+	int get_dodge_chance();
+	int get_toughness();
+	int get_weapon_skill(int);
+	double get_covered();
 
 	// Methods of a class:
 
@@ -167,7 +176,7 @@ public:
 
 	vector <Ability_Active> abilities; //			List of abilities of a unit
 	vector <Ability_Active> applied_abilities; //	List of active abilities, applied on a unit
-	vector <Item> arms; //							Items in the unit's hands
+	Weapon weapon; //								Weapon unit is carrying
 	Armor armor; //									Armor unit is wearing
 	vector <Artifact> artifacts; //					List of artifacts unit is carryings
 	vector <Consumable_Item> consumables; //		List of consumable items
@@ -182,8 +191,12 @@ private:
 	char current_initiative; //						Current initiative in battle for queueing
 	char hit_chance; //								Chance of a unit to hit, 0<hit_chance<100
 	char dodge_chance; //							Chance of a unit to dodge, 0<dodge_chance<100
+	int toughness; //								Amount of attack damage that will be substracted
 	double covered; //								AP modifier to attack this unit
-		
+					//								Covered == 1 means unit is not covered at all
+	
+	char weapon_skill[NUMBER_OF_WEAPON_TYPES]; //	Stores weapon skills for every weapon type, skill = percent of weapon's to_hit bonus
+
 	bool dead; //									Shows whether unit is dead in particular combat
 };
 
@@ -231,11 +244,9 @@ private:
 class Attack:public Ability_Active
 {
 public:
-	Attack(int,int);
+	Attack();
 	int initialize_ability(Unit &, Unit &, int);
 private:
-	short damage; //				Damage modifier of ability
-	short to_hit_modifier; //		To hit modifier of ability
 };
 
 class Hero: public Unit
@@ -279,6 +290,7 @@ private:
 class Battle
 {
 public:
+	Battle();
 	int process_situation(); //						Check whether someone is dead and add units to battle queue if there are none
 							 //						Returns 0 if party is dead, 2 if party wins, 1 if none of this
 	int process_unit(); //							Processing top of battle queue while it has action points

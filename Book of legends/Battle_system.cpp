@@ -8,6 +8,10 @@ int Unit::get_HP() { return HP; }
 int Unit::get_MP() { return MP; }
 int Unit::get_AP() { return AP; }
 int Unit::get_hit_chance() { return hit_chance; }
+int Unit::get_dodge_chance() { return dodge_chance; }
+int Unit::get_toughness() { return toughness; }
+int Unit::get_weapon_skill(int type) { return weapon_skill[type]; }
+double Unit::get_covered() { return covered; };
 
 int Unit::modify_HP(double value)
 {
@@ -129,10 +133,10 @@ void Hero::show()
 
 //Class Weapon methods begin here:
 
-int Weapon::get_hit_modifier()
-{
-	return to_hit_modifier;
-}
+int Weapon::get_hit_modifier(){ return to_hit_modifier; }
+int Weapon::get_type(){ return type; }
+int Weapon::get_damage(){ return damage; }
+double Weapon::get_AP_modifier(){ return AP_modifier;};
 
 //Class Weapon methods end here.
 
@@ -220,20 +224,39 @@ void Ability_Active::remove_ability(Unit & target)
 
 //Class Attack methods begin here.
 
-Attack::Attack(int dam, int to_hit):Ability_Active(1), damage(dam), to_hit_modifier(to_hit)
-{
-	//Check whether all effects of ability are instant.
-}
+Attack::Attack():Ability_Active(1){}
 
 int Attack::initialize_ability(Unit & caster, Unit & target, int turn)
 {
-	// Calculate to-hit chance
+	// Calculating apcost of this attack:
+	int AP_cost = (*this).get_actioncost() * caster.weapon.get_AP_modifier() * target.get_covered();
+	if(caster.get_AP() >= AP_cost) // Check whether attack can be really applied
+	{
+		caster.modify_AP((-1)*(AP_cost - (*this).get_actioncost())); // Substract difference between actioncost and real cost of attack
+		// Calculating percent of successful allack:
+		int attack_chance = caster.get_hit_chance() + (caster.weapon.get_hit_modifier()*caster.get_weapon_skill(caster.weapon.get_type()))/100;
+		attack_chance -= target.get_dodge_chance();
+		int dice = rand() % 100; //				Rolling d100
+		if(dice < attack_chance) //				If roll is successful:
+		{
+			// Calculating damage:
+			int damage = caster.weapon.get_damage()*(caster.get_weapon_skill(caster.weapon.get_type())+100)/200;
+			damage -= target.get_toughness();
+			target.modify_HP((-1) * damage); // Applying damage
+		}
+		Ability_Active::initialize_ability(caster, target, turn);
+	}
 	return 1;
 }
 
 //Class Attack methods end here:
 
 //Class Battle methods begin here:
+
+Battle::Battle()
+{
+	srand(time(NULL)); //		Seed for random generation in this battle
+}
 
 int Battle::process_situation()
 {
@@ -335,7 +358,9 @@ int Battle::process_unit()
 		}
 	}
 
-	if(!active_unit.is_dead()) //													Check if active unit is already dead
+	int AP_buffer = active_unit.get_AP(); //			Saving AP of a unit	
+
+	if(!active_unit.is_dead()) //						Check if active unit is already dead
 		while(active_unit.get_AP() > 0) //				Continie while active unit can act
 		{
 			Ability_Active chosen_ability = active_unit.choose_ability(*this); //	Choose ability
@@ -353,6 +378,9 @@ int Battle::process_unit()
 			}
 			// Here are all checks for special situations
 		}
+
+		active_unit.modify_AP((-1)*active_unit.get_AP()); //	Ensuring AP of a unit is equal to 0
+		active_unit.modify_AP(AP_buffer); //					Restoring AP of a unit
 
 		return special_situation;
 }

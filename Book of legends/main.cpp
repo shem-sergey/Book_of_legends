@@ -2,6 +2,7 @@
 
 int main()
 {
-	std::cout << "Hello world!\n";
+	Unit a;
+	std::cout << "Size of default-constructed unit" << sizeof(a);
 	return 0;
 }
