@@ -263,7 +263,6 @@ public:
 
 	void initialize_effect(Unit & caster, Unit & target)
 	{
-		if(!(*this).is_instant()) //		Duration != 0
 		target.modify_dodge_chance(value);
 	}
 
@@ -451,4 +450,51 @@ public:
 	}
 private:
 	int HP_buffer; //			Stores HP of killed character until it is revived
+};
+
+class Toughness_Affect:public Effect //			Adds given value to toughness of target
+{
+public:
+	Toughness_Affect(int duration, double value):Effect(duration, value) 
+	{
+		if(duration == 0) // Must not be instant
+			duration++;
+		positive = (value > 0);
+	};
+
+	void initialize_effect(Unit & caster, Unit & target)
+	{
+		if(value < 0 && -value > target.get_toughness())
+			actual_value_of_modifying_toughness = -target.get_toughness();
+		else actual_value_of_modifying_toughness = value;
+		target.modify_toughness(actual_value_of_modifying_toughness);
+	}
+
+	void remove_effect(Unit & caster, Unit & target)
+	{
+		target.modify_toughness(-actual_value_of_modifying_toughness);
+	}
+private:
+	unsigned char actual_value_of_modifying_toughness;
+};
+
+class Weapon_Skill_Affect:public Effect //			Modifies weapon skill of current weapon by value
+{
+public:
+	Weapon_Skill_Affect(int duration, double value):Effect(duration, value) 
+	{
+		if(duration == 0) // Must not be instant
+			duration++;
+		positive = (value > 0);
+	};
+
+	void initialize_effect(Unit & caster, Unit & target)
+	{
+		target.modify_weapon_skill(target.weapon.get_type(), value);
+	}
+
+	void remove_effect(Unit & caster, Unit & target)
+	{
+		target.modify_weapon_skill(target.weapon.get_type(), -value);
+	}
 };

@@ -101,6 +101,24 @@ void Unit::modify_covered(double value)
 {
 	covered *= value;
 }
+int Unit::modify_toughness(int value)
+{
+	if(toughness + value >= 0)
+	{
+		toughness = toughness + value;
+		return 0;
+	}
+	else
+	{
+		toughness = 0;
+		return -(toughness + value);
+	}
+
+}
+void Unit::modify_weapon_skill(short weapon_type, short value)
+{
+	weapon_skill[weapon_type] += value;
+}
 
 void Unit::show()
 {

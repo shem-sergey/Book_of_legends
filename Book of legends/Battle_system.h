@@ -152,6 +152,8 @@ public:
 	void modify_hit_chance(double); //			Multiplies hit_chance by argument
 	void modify_dodge_chance(double); //		Multiplies dodge_chance by argument
 	void modify_covered(double); //				Multiplies covered by argument
+	int modify_toughness(int); //				Adds argument to toughness of the unit, returnes 0 if modified toughness >= 0, modulo of toughness else.
+	void modify_weapon_skill(short, short); //  Modifies weapon skill of the given weapon by given value
 
 	// Getters of Unit:
 	bool is_dead();
@@ -195,7 +197,7 @@ private:
 	double covered; //								AP modifier to attack this unit
 					//								Covered == 1 means unit is not covered at all
 	
-	char weapon_skill[NUMBER_OF_WEAPON_TYPES]; //	Stores weapon skills for every weapon type, skill = percent of weapon's to_hit bonus
+	short weapon_skill[NUMBER_OF_WEAPON_TYPES]; //	Stores weapon skills for every weapon type, skill = percent of weapon's to_hit bonus
 
 	bool dead; //									Shows whether unit is dead in particular combat
 };
