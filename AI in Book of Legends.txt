@@ -1,1 +1,76 @@
-Here I will write main ideas and principals of AI in BoL.
+
+
+I. Basic principals.
+
+
+1. Every character wants to live. Very-very much. His life is the highest priority.
+
+2. Every character chooses his action with respect to his role in the party i. e. his class.
+
+3. Every character should be able to use each one of his abilities in suitable situations.
+
+4. Priority of moves and initiative should be taken into account.
+
+5. Characters should act together in cooperation.
+
+6. Actions of characters can contain a little bit of randomness when decision is not obvious.
+
+7. Previous decisions should be remembered. New actions should be done with respect to the past.
+
+8. Characters should be sorted in accordance to their usefulness. Characters with a lot of damage are in priority.
+
+9. Opponent characters should be sorted according to their danger. They are attacked in order of danger with respect to the amount of their HP. Most tanky ones should be disabled.
+
+
+II. Little about roles.
+
+List of roles/classes:
+
+
+1. Warrior - good attack damage, combat skills, high HP
+
+2. Rouge - good attack damage, poison, dodge chance, low HP
+
+3. Wizard - weak attack, spell damage, ice/fire/electricity, low HP
+
+4. Healer/priest/druid - weak attack, buffs and debuffs, normal HP
+
+5. Archer - good attack, hit chance buffs, high dodge chance, low HP
+
+6. Bard - moderate attack, disable spells, normal HP
+
+7. Scum - moderate attack, weak skills, normal HP
+
+8. Necromancer - weak attack, death/revival skills, low HP
+
+9. Boss - strong at all, unusual skills
+
+10. Tank - moderate attack, shield, high HP
+
+
+III. Warrior's tactic.
+
+
+1. If warrior has more than 50% HP and has no bad effects he can dispel everything is fine.
+
+2. If warrior has bad effects he can dispel, he dispels them.
+
+3. If everything is fine, then warrior checks his disables. If he has some, and there are at least 2 dangerous opponents that can be disabled (silence on warrior does not count), then warrion applies his disable.
+
+4. If everything is fine, and there is not many dangerous opponents or at last turn warrior applied disable, warrior attacks or applies damage skill on the weakest of dangerous opponents, if they are not very tanky. If they are, warrior hits someone more thin considering the battle queue.
+
+5. If everything is not fine, warrior becomes more careful, upto maximal carefulness at 25% of HP. He hides behind tanks or becomes a target of healers.
+
+
+IV. Rouge's tactic.
+
+
+1. If rogue has nore than 40% and has no bad effects he can dispel, everything is fine.
+
+2. If rogue has bad effects affecting him notably (not just shited pants) that he can dispel, he dispels them.
+
+3. If everything is fine, rouge considers his debuffs and disables. Disables are applied on dangerous opponents, debuffs are applied to enemies in danger priority with respect to the exact effect of debuff (e. g. manaleak on caster, armor reducton on tank). In this process rogue defines bad and good decisions. If all decisions are bad, rogue does special or usual attack. Also rouge can be lack of mana.
+
+4. When it comes to usual and specail attacks, rogue calculates optimal damage/AP cost variant and applies it to the weakest of dangerous opponents, if they are not very tanky. If they are, warrior hits someone more thin considering the battle queue.
+
+5. If everything is not fine, warrior becomes more careful, upto maximal carefulness at 20% of HP. He hides behind tanks or becomes a target of healers. However, he should not be the most valuable target of healers. 
